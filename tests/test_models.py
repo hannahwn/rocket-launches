@@ -2,37 +2,53 @@
 
 import pytest
 from pydantic import ValidationError
-from src.models import WeatherReading
+from src.models import RocketLaunch
 
 
 def test_valid_reading():
     """A valid record should be accepted."""
-    reading = WeatherReading(
-        city="Copenhagen",
-        temperature=18.5,
-        humidity=65.0,
-        timestamp="2026-03-30T10:00",
+    reading = RocketLaunch(
+        id="launch-1",
+        name="Falcon 9",
+        net="2026-03-30T10:00:00Z",
+        window_start="2026-03-30T08:00:00Z",
+        window_end="2026-03-30T12:00:00Z",
+        status={"id": 1, "name": "Go for Launch"},
+        rocket={"id": 1, "name": "Falcon 9"},
+        mission={"id": 1, "name": "Starlink Mission"},
+        pad={"id": 1, "name": "LC-39A"}
     )
-    assert reading.city == "Copenhagen"
-    assert reading.temperature == 18.5
+    assert reading.id == "launch-1"
+    assert reading.name == "Falcon 9"
 
 
 def test_invalid_temperature_too_high():
     """Temperature above 100 should be rejected."""
     with pytest.raises(ValidationError):
-        WeatherReading(
-            city="Copenhagen",
-            temperature=999,
-            humidity=65.0,
-            timestamp="2026-03-30T10:00",
+        RocketLaunch(
+            id="launch-1",
+            name="Falcon 9",
+            net="2026-03-30T10:00:00Z",
+            window_start="2026-03-30T08:00:00Z",
+            window_end="2026-03-30T12:00:00Z",
+            status={"id": 1, "name": "Go for Launch"},
+            rocket={"id": 1, "name": "Falcon 9"},
+            mission={"id": 1, "name": "Starlink Mission"},
+            pad={"id": 1, "name": "LC-39A"}
         )
 
 
-def test_missing_city():
+def test_missing_id():
     """Missing required field should be rejected."""
     with pytest.raises(ValidationError):
-        WeatherReading(
-            temperature=18.5,
-            humidity=65.0,
-            timestamp="2026-03-30T10:00",
+        RocketLaunch(
+            id="",
+            name="Falcon 9",
+            net="2026-03-30T10:00:00Z",
+            window_start="2026-03-30T08:00:00Z",
+            window_end="2026-03-30T12:00:00Z",
+            status={"id": 1, "name": "Go for Launch"},
+            rocket={"id": 1, "name": "Falcon 9"},
+            mission={"id": 1, "name": "Starlink Mission"},
+            pad={"id": 1, "name": "LC-39A"}
         )

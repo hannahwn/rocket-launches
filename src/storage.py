@@ -29,34 +29,52 @@ def insert_readings(df: pd.DataFrame) -> None:
             cur.execute(
                 f"CREATE SCHEMA IF NOT EXISTS {schema}"  # noqa: S608
             )
-            cur.execute(f"SET search_path TO {schema}")  # noqa: S608
+            cur.execute(f"SET search_path TO {schema}")  # noqa: 
+            cur.execute("DROP TABLE IF EXISTS rocket_launches")
 
-            # TODO: Replace 'weather_readings' with a name that describes your data.
+            # TODO: Replace 'rocket_launches' with a name that describes your data.
             cur.execute("""
-                CREATE TABLE IF NOT EXISTS weather_readings (
-                    id SERIAL PRIMARY KEY,
-                    city TEXT NOT NULL,
-                    temperature REAL NOT NULL,
-                    humidity REAL NOT NULL,
-                    timestamp TEXT NOT NULL
+                CREATE TABLE IF NOT EXISTS rocket_launches (
+                     id TEXT PRIMARY KEY,
+                    name TEXT,
+                    launch_date TIMESTAMPTZ,
+                    launch_status TEXT,
+                    rocket_name TEXT,
+                    mission_name TEXT,
+                    mission_type TEXT,
+                    orbit TEXT,
+                    provider_name TEXT,
+                    provider_type TEXT,
+                    pad_name TEXT,
+                    location TEXT
+                        
                 )
             """)
 
             for _, row in df.iterrows():
                 cur.execute(
-                    "INSERT INTO weather_readings (city, temperature, humidity, timestamp)"
-                    " VALUES (%s, %s, %s, %s)",
+                    "INSERT INTO rocket_launches (id, name, launch_date, launch_status, rocket_name, mission_name, mission_type, orbit, provider_name, provider_type, pad_name, location)"
+                    " VALUES (%s,%s,%s, %s, %s, %s, %s, %s, %s, %s,%s,%s)"
+                    " ON CONFLICT (id) DO NOTHING",
                     (
-                        row["city"],
-                        row["temperature"],
-                        row["humidity"],
-                        row["timestamp"],
+                       row["id"],
+                        row["name"],
+                        row["launch_date"],
+                        row["launch_status"],
+                        row["rocket_name"],
+                        row["mission_name"],
+                        row["mission_type"],
+                        row["orbit"],
+                        row["provider_name"],
+                        row["provider_type"],
+                        row["pad_name"],
+                        row["location"],
                     ),
                 )
 
         conn.commit()
 
-    log.info("Inserted %d rows into %s.weather_readings", len(df), schema)
+    log.info("Inserted %d rows into %s.rocket_launches", len(df), schema)
 
 
 def upload_raw_json(raw_data) -> None:

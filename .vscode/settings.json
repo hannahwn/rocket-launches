@@ -1,0 +1,19 @@
+{
+  "sqltools.connections": [
+    {
+      "pgOptions": {
+        "ssl": {
+          "rejectUnauthorized": true
+        }
+      },
+      "ssh": "Disabled",
+      "previewLimit": 50,
+      "server": "hyf-data-pg.postgres.database.azure.com",
+      "port": 5432,
+      "driver": "PostgreSQL",
+      "username": "hyfadmin",
+      "database": "team1",
+      "name": "hackyourFuture"
+    }
+  ]
+}
