@@ -1,8 +1,9 @@
-# Week 7 Project: [Your Project Name]
+# Week 7 Project: [Space Launches]
 
 ## What it does
 
-<!-- Describe your pipeline in 1-2 sentences. What data does it fetch? Where does it store the results? -->
+A data pipeline that fetches upcoming rocket launch data from the Space Launches API (ll.thespacedevs.com), validates and transforms it, then stores the raw JSON response in Azure Blob Storage and inserts cleaned structured records into a Postgres database. It runs automatically every morning at 6am as a scheduled Azure Container App Job.
+
 
 ## Architecture
 
