@@ -3,9 +3,7 @@
 import logging
 import os
 import sys
-from urllib import response
 
-from dotenv.main import logger
 from dotenv.main import logger
 import pandas as pd
 from pydantic import ValidationError
