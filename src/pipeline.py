@@ -5,6 +5,8 @@ import os
 import sys
 from urllib import response
 
+from dotenv.main import logger
+from dotenv.main import logger
 import pandas as pd
 from pydantic import ValidationError
 import requests
@@ -30,20 +32,40 @@ def fetch_data() -> list[dict]:
     #   response = requests.get("https://api.open-meteo.com/v1/forecast?...")
     #   response.raise_for_status()
     #   return response.json()["hourly"]
-    
-    response = requests.get(
-    "https://ll.thespacedevs.com/2.2.0/launch/upcoming",
-    params={
-       "limit": 10,  
-       "format": "json"
-       
-    },
-    timeout=10,
-)
-
-    response.raise_for_status()
-    return response.json()["results"]
-
+    url = "https://ll.thespacedevs.com/2.2.0/launch/upcoming"
+        
+    try:
+        logger.info("Fetching data from SpaceDev API...")
+            
+        response = requests.get(
+                url,
+                params={"limit": 10, "format": "json"},
+                timeout=15,
+            )
+            
+        response.raise_for_status()
+            
+        data = response.json()
+        results = data.get("results", [])
+            
+        logger.info(f"Successfully fetched {len(results)} rocket launches")
+        return results
+            
+    except requests.exceptions.ConnectionError:
+        logger.error("ConnectionError: Cannot connect to the API (no internet or API down)")
+        return []
+        
+    except requests.JSONDecodeError:
+        logger.error("JSONDecodeError: API did not return valid JSON")
+        return []
+        
+    except requests.RequestException as e:
+        logger.error(f"Request failed: {e}")
+        return []
+        
+    except Exception as e:
+        logger.error(f"Unexpected error while fetching data: {e}")
+        return []
 
 def validate(raw_records: list[dict]) -> list[RocketLaunch]:
     """Validate raw records using Pydantic models."""
@@ -65,8 +87,6 @@ def transform(readings: list[RocketLaunch]) -> pd.DataFrame:
     transformations that make sense for your data.
     """
     df = pd.DataFrame([r.model_dump() for r in readings])
-
-   
 
     # TODO: Replace these with your own transformations. Examples:
     #
@@ -95,16 +115,15 @@ def transform(readings: list[RocketLaunch]) -> pd.DataFrame:
     df["mission_type"] = df["mission_type"].fillna("Unknown")
     df["orbit"] = df["orbit"].fillna("Unknown")
 
-        # Remove launches with unknown payload
+    # Remove launches with unknown payload
     df = df[~df["name"].str.contains("Unknown Payload", case=False, na=False)]
 
-        # add this before dropna
-    print(df[["name",  "rocket_name", "provider_name"]].head())
-    print(df.isnull().sum())
+    
+    
 
     # 4. Drop rows where critical fields are missing
     df = df.dropna(subset=["rocket_name", "provider_name"])
-        
+
     log.info("Transformed %d rows", len(df))
     return df
 

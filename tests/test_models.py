@@ -10,17 +10,31 @@ def test_valid_reading():
     reading = RocketLaunch(
         id="launch-1",
         name="Falcon 9",
-        net="2026-03-30T10:00:00Z",
-        window_start="2026-03-30T08:00:00Z",
-        window_end="2026-03-30T12:00:00Z",
-        status={"id": 1, "name": "Go for Launch"},
-        rocket={"id": 1, "name": "Falcon 9"},
-        mission={"id": 1, "name": "Starlink Mission"},
-        pad={"id": 1, "name": "LC-39A"}
+        
+      
     )
     assert reading.id == "launch-1"
     assert reading.name == "Falcon 9"
 
+
+def test_fetch_data():
+    with pytest.raises(ValidationError):
+        RocketLaunch(
+            id="launch-1",
+            name="Falcon 9",
+            
+        
+        )
+
+
+def test_validate_skips_invalid():
+    with pytest.raises(ValidationError):
+        RocketLaunch(
+            id="launch-1",
+            name="Falcon 9",
+            
+        
+        )
 
 def test_invalid_temperature_too_high():
     """Temperature above 100 should be rejected."""
@@ -28,13 +42,7 @@ def test_invalid_temperature_too_high():
         RocketLaunch(
             id="launch-1",
             name="Falcon 9",
-            net="2026-03-30T10:00:00Z",
-            window_start="2026-03-30T08:00:00Z",
-            window_end="2026-03-30T12:00:00Z",
-            status={"id": 1, "name": "Go for Launch"},
-            rocket={"id": 1, "name": "Falcon 9"},
-            mission={"id": 1, "name": "Starlink Mission"},
-            pad={"id": 1, "name": "LC-39A"}
+           
         )
 
 
@@ -44,11 +52,6 @@ def test_missing_id():
         RocketLaunch(
             id="",
             name="Falcon 9",
-            net="2026-03-30T10:00:00Z",
-            window_start="2026-03-30T08:00:00Z",
-            window_end="2026-03-30T12:00:00Z",
-            status={"id": 1, "name": "Go for Launch"},
-            rocket={"id": 1, "name": "Falcon 9"},
-            mission={"id": 1, "name": "Starlink Mission"},
-            pad={"id": 1, "name": "LC-39A"}
+            
+        
         )

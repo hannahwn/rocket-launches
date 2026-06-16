@@ -20,9 +20,8 @@ class RocketLaunch(BaseModel):
     provider_type: Optional[str] = None
     pad_name: Optional[str] = None
     location: Optional[str] = None
-    pad: Optional[dict] = None         
+    pad: Optional[dict] = None
     launch_service_provider: Optional[dict] = None
-    
 
     # TODO: Replace these fields with the fields from your API response.
     # Pydantic will reject any record that does not match this schema.
@@ -44,5 +43,5 @@ class RocketLaunch(BaseModel):
             pad_name=data.get("pad", {}).get("name"),
             location=data.get("pad", {}).get("location", {}).get("name"),
             pad=data.get("pad"),
-            launch_service_provider=data.get("launch_service_provider")
+            launch_service_provider=data.get("launch_service_provider"),
         )
