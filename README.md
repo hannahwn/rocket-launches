@@ -59,7 +59,7 @@ az containerapp job create \
   --env-vars \
     POSTGRES_URL="$(az keyvault secret show --vault-name kv-hyf-data --name postgres-url --query value -o tsv)" \
     AZURE_STORAGE_CONNECTION_STRING="$(az keyvault secret show --vault-name kv-hyf-data --name storage-connection-string --query value -o tsv)" \
-    DB_SCHEMA=dev_alice \
+    DB_SCHEMA=dev_hannahwn \
     LOG_LEVEL=INFO
 
 # Trigger a manual run for testing (without waiting for the schedule)
