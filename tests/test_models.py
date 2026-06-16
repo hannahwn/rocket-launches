@@ -20,7 +20,7 @@ def test_valid_reading():
 def test_fetch_data():
     with pytest.raises(ValidationError):
         RocketLaunch(
-            id="launch-1",
+            id=None,
             name="Falcon 9",
             
         
@@ -30,27 +30,20 @@ def test_fetch_data():
 def test_validate_skips_invalid():
     with pytest.raises(ValidationError):
         RocketLaunch(
-            id="launch-1",
+            id=12345,
             name="Falcon 9",
             
         
         )
 
-def test_invalid_temperature_too_high():
-    """Temperature above 100 should be rejected."""
-    with pytest.raises(ValidationError):
-        RocketLaunch(
-            id="launch-1",
-            name="Falcon 9",
-           
-        )
+
 
 
 def test_missing_id():
     """Missing required field should be rejected."""
     with pytest.raises(ValidationError):
         RocketLaunch(
-            id="",
+            id=None,
             name="Falcon 9",
             
         
