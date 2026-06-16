@@ -52,7 +52,9 @@ def insert_readings(df: pd.DataFrame) -> None:
             """)
 
             for _, row in df.iterrows():
-                launch_date = row["launch_date"] if pd.notna(row["launch_date"]) else None
+                launch_date = (
+                    row["launch_date"] if pd.notna(row["launch_date"]) else None
+                )
                 cur.execute(
                     "INSERT INTO rocket_launches (id, name, launch_date, launch_status, rocket_name, mission_name, mission_type, orbit, provider_name, provider_type, pad_name, location)"
                     " VALUES (%s,%s,%s, %s, %s, %s, %s, %s, %s, %s,%s,%s)"
@@ -84,9 +86,11 @@ def insert_provider_summary(df: pd.DataFrame) -> None:
     schema = os.environ.get("DB_SCHEMA", "public")
 
     # Create summary with groupby
-    summary = df.groupby(["provider_name", "provider_type"]).agg(
-        launch_count=("id", "count")
-    ).reset_index()
+    summary = (
+        df.groupby(["provider_name", "provider_type"])
+        .agg(launch_count=("id", "count"))
+        .reset_index()
+    )
 
     with closing(psycopg2.connect(db_url)) as conn:
         with conn.cursor() as cur:
@@ -110,7 +114,7 @@ def insert_provider_summary(df: pd.DataFrame) -> None:
                         row["provider_name"],
                         row["provider_type"],
                         row["launch_count"],
-                    )
+                    ),
                 )
         conn.commit()
     log.info("Inserted %d rows into launch_providers", len(summary))

@@ -126,12 +126,18 @@ def transform(readings: list[RocketLaunch]) -> pd.DataFrame:
     log.info("Transformed %d rows", len(df))
     return df
 
+
 def create_provider_summary(df: pd.DataFrame) -> pd.DataFrame:
     """Analyse launches per provider."""
-    summary = df.groupby(["provider_name", "provider_type"]).agg(
-        launch_count=("id", "count"),
-    ).reset_index()
+    summary = (
+        df.groupby(["provider_name", "provider_type"])
+        .agg(
+            launch_count=("id", "count"),
+        )
+        .reset_index()
+    )
     return summary
+
 
 def run():
     """Run the full pipeline: fetch -> validate -> transform -> store."""
