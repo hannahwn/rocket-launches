@@ -4,14 +4,13 @@ import logging
 import os
 import sys
 
-from dotenv.main import logger
 import pandas as pd
 from pydantic import ValidationError
 import requests
 from dotenv import load_dotenv
 
 from src.models import RocketLaunch
-from src.storage import insert_readings, upload_raw_json
+from src.storage import insert_readings, upload_raw_json, insert_provider_summary
 
 logging.basicConfig(
     level=os.getenv("LOG_LEVEL", "INFO"),
@@ -33,7 +32,7 @@ def fetch_data() -> list[dict]:
     url = "https://ll.thespacedevs.com/2.2.0/launch/upcoming"
 
     try:
-        logger.info("Fetching data from SpaceDev API...")
+        log.info("Fetching data from SpaceDev API...")
 
         response = requests.get(
             url,
@@ -46,25 +45,25 @@ def fetch_data() -> list[dict]:
         data = response.json()
         results = data.get("results", [])
 
-        logger.info(f"Successfully fetched {len(results)} rocket launches")
+        log.info(f"Successfully fetched {len(results)} rocket launches")
         return results
 
     except requests.exceptions.ConnectionError:
-        logger.error(
+        log.error(
             "ConnectionError: Cannot connect to the API (no internet or API down)"
         )
         return []
 
     except requests.JSONDecodeError:
-        logger.error("JSONDecodeError: API did not return valid JSON")
+        log.error("JSONDecodeError: API did not return valid JSON")
         return []
 
     except requests.RequestException as e:
-        logger.error(f"Request failed: {e}")
+        log.error(f"Request failed: {e}")
         return []
 
     except Exception as e:
-        logger.error(f"Unexpected error while fetching data: {e}")
+        log.error(f"Unexpected error while fetching data: {e}")
         return []
 
 
@@ -106,6 +105,8 @@ def transform(readings: list[RocketLaunch]) -> pd.DataFrame:
     # 1. Drop duplicates
     df = df.drop_duplicates(subset=["id"])
 
+    df["launch_date"] = pd.to_datetime(df["launch_date"], utc=True, errors="coerce")
+
     # 2. Normalize text
     df["name"] = df["name"].str.strip().str.title()
     df["provider_name"] = df["provider_name"].str.strip()
@@ -125,6 +126,15 @@ def transform(readings: list[RocketLaunch]) -> pd.DataFrame:
     log.info("Transformed %d rows", len(df))
     return df
 
+def create_provider_summary(df: pd.DataFrame) -> pd.DataFrame:
+    """Analyse launches per provider."""
+    summary = df.groupby(["provider_name", "provider_type"]).agg(
+        launch_count=("id", "count"),
+    ).reset_index()
+    return summary
+
+
+
 
 def run():
     """Run the full pipeline: fetch -> validate -> transform -> store."""
@@ -139,6 +149,7 @@ def run():
 
     df = transform(readings)
     insert_readings(df)
+    insert_provider_summary(df)
     upload_raw_json(raw)
 
     log.info("Pipeline finished: %d records stored", len(df))

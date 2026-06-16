@@ -47,7 +47,7 @@ docker push hyfregistry.azurecr.io/my-pipeline:1.0
 
 # Create Container App Job (runs daily at 06:00 UTC)
 az containerapp job create \
-  --name my-pipeline-job \
+  --name hannahwn-pipeline-job \
   --resource-group rg-hyf-data \
   --environment env-hyf-data \
   --image hyfregistry.azurecr.io/my-pipeline:1.0 \
