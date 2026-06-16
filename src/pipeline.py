@@ -31,39 +31,42 @@ def fetch_data() -> list[dict]:
     #   response.raise_for_status()
     #   return response.json()["hourly"]
     url = "https://ll.thespacedevs.com/2.2.0/launch/upcoming"
-        
+
     try:
         logger.info("Fetching data from SpaceDev API...")
-            
+
         response = requests.get(
-                url,
-                params={"limit": 10, "format": "json"},
-                timeout=15,
-            )
-            
+            url,
+            params={"limit": 10, "format": "json"},
+            timeout=15,
+        )
+
         response.raise_for_status()
-            
+
         data = response.json()
         results = data.get("results", [])
-            
+
         logger.info(f"Successfully fetched {len(results)} rocket launches")
         return results
-            
+
     except requests.exceptions.ConnectionError:
-        logger.error("ConnectionError: Cannot connect to the API (no internet or API down)")
+        logger.error(
+            "ConnectionError: Cannot connect to the API (no internet or API down)"
+        )
         return []
-        
+
     except requests.JSONDecodeError:
         logger.error("JSONDecodeError: API did not return valid JSON")
         return []
-        
+
     except requests.RequestException as e:
         logger.error(f"Request failed: {e}")
         return []
-        
+
     except Exception as e:
         logger.error(f"Unexpected error while fetching data: {e}")
         return []
+
 
 def validate(raw_records: list[dict]) -> list[RocketLaunch]:
     """Validate raw records using Pydantic models."""
@@ -115,9 +118,6 @@ def transform(readings: list[RocketLaunch]) -> pd.DataFrame:
 
     # Remove launches with unknown payload
     df = df[~df["name"].str.contains("Unknown Payload", case=False, na=False)]
-
-    
-    
 
     # 4. Drop rows where critical fields are missing
     df = df.dropna(subset=["rocket_name", "provider_name"])
