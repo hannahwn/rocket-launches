@@ -16,7 +16,6 @@ import re
 import subprocess
 import sys
 from pathlib import Path
-from typing import List, Optional, Tuple
 
 # ---------------------------------------------------------------------------
 # Result container
@@ -393,7 +392,7 @@ def main():
     print(f"\n{'=' * 60}")
     print(f"  Automated checks: {passed}/{total} passed")
     if critical_failures:
-        print(f"\n  Critical failures:")
+        print("\n  Critical failures:")
         for r in critical_failures:
             print(f"    {r.icon} {r.label}")
     print(f"{'=' * 60}")

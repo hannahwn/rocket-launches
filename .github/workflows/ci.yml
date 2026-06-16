@@ -25,13 +25,22 @@ jobs:
       - name: Run tests
         run: uv run pytest tests/ -v
 
-  # Uncomment and configure once you have ACR access:
-  # push-to-acr:
-  #   needs: lint
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - uses: actions/checkout@v4
-  #     - name: Build and push
-  #       run: |
-  #         docker build --platform linux/amd64 -t hyfregistry.azurecr.io/${{ github.event.repository.name }}:${{ github.sha }} .
-  #         docker push hyfregistry.azurecr.io/${{ github.event.repository.name }}:${{ github.sha }}
+        
+        # Uncomment and configure once you have ACR access:
+  push-to-acr:
+     needs: lint
+     runs-on: ubuntu-latest
+     steps:
+     - uses: actions/checkout@v4
+     - name: Login to ACR
+       uses: docker/login-action@v3
+       with:
+        registry: hyfregistry.azurecr.io
+        username: ${{ secrets.ACR_USERNAME }}
+        password: ${{ secrets.ACR_PASSWORD }}
+      steps:
+      - uses: actions/checkout@v4
+      - name: Build and push
+        run: |
+           docker build --platform linux/amd64 -t hyfregistry.azurecr.io/${{ github.event.repository.name }}:${{ github.sha }} .
+           docker push hyfregistry.azurecr.io/${{ github.event.repository.name }}:${{ github.sha }}

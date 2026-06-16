@@ -29,7 +29,7 @@ def insert_readings(df: pd.DataFrame) -> None:
             cur.execute(
                 f"CREATE SCHEMA IF NOT EXISTS {schema}"  # noqa: S608
             )
-            cur.execute(f"SET search_path TO {schema}")  # noqa:
+            cur.execute(f"SET search_path TO {schema}")  # noqa: S608
             cur.execute("DROP TABLE IF EXISTS rocket_launches")
 
             # TODO: Replace 'rocket_launches' with a name that describes your data.
@@ -52,6 +52,9 @@ def insert_readings(df: pd.DataFrame) -> None:
             """)
 
             for _, row in df.iterrows():
+                launch_date = (
+                    row["launch_date"] if pd.notna(row["launch_date"]) else None
+                )
                 cur.execute(
                     "INSERT INTO rocket_launches (id, name, launch_date, launch_status, rocket_name, mission_name, mission_type, orbit, provider_name, provider_type, pad_name, location)"
                     " VALUES (%s,%s,%s, %s, %s, %s, %s, %s, %s, %s,%s,%s)"
@@ -59,7 +62,7 @@ def insert_readings(df: pd.DataFrame) -> None:
                     (
                         row["id"],
                         row["name"],
-                        row["launch_date"],
+                        launch_date,
                         row["launch_status"],
                         row["rocket_name"],
                         row["mission_name"],
@@ -75,6 +78,46 @@ def insert_readings(df: pd.DataFrame) -> None:
         conn.commit()
 
     log.info("Inserted %d rows into %s.rocket_launches", len(df), schema)
+
+
+def insert_provider_summary(df: pd.DataFrame) -> None:
+    """Create and insert provider summary table."""
+    db_url = os.environ["POSTGRES_URL"]
+    schema = os.environ.get("DB_SCHEMA", "public")
+
+    # Create summary with groupby
+    summary = (
+        df.groupby(["provider_name", "provider_type"])
+        .agg(launch_count=("id", "count"))
+        .reset_index()
+    )
+
+    with closing(psycopg2.connect(db_url)) as conn:
+        with conn.cursor() as cur:
+            cur.execute(f"SET search_path TO {schema}")
+            cur.execute("DROP TABLE IF EXISTS launch_providers")
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS launch_providers (
+                    provider_name TEXT,
+                    provider_type TEXT,
+                    launch_count INTEGER
+                )
+            """)
+            for _, row in summary.iterrows():
+                cur.execute(
+                    """
+                    INSERT INTO launch_providers 
+                    (provider_name, provider_type, launch_count)
+                    VALUES (%s, %s, %s)
+                    """,
+                    (
+                        row["provider_name"],
+                        row["provider_type"],
+                        row["launch_count"],
+                    ),
+                )
+        conn.commit()
+    log.info("Inserted %d rows into launch_providers", len(summary))
 
 
 def upload_raw_json(raw_data) -> None:
