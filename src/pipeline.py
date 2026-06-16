@@ -133,9 +133,6 @@ def create_provider_summary(df: pd.DataFrame) -> pd.DataFrame:
     ).reset_index()
     return summary
 
-
-
-
 def run():
     """Run the full pipeline: fetch -> validate -> transform -> store."""
     log.info("Pipeline starting")

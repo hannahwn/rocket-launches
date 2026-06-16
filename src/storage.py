@@ -29,7 +29,7 @@ def insert_readings(df: pd.DataFrame) -> None:
             cur.execute(
                 f"CREATE SCHEMA IF NOT EXISTS {schema}"  # noqa: S608
             )
-            cur.execute(f"SET search_path TO {schema}")  # noqa:
+            cur.execute(f"SET search_path TO {schema}")  # noqa: S608
             cur.execute("DROP TABLE IF EXISTS rocket_launches")
 
             # TODO: Replace 'rocket_launches' with a name that describes your data.
