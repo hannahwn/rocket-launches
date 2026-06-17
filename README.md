@@ -1,6 +1,4 @@
-# Week 7 Project: [Space Launches
-
-]
+# Week 7 Project: [Space Launches]
 
 ## What it does
 
