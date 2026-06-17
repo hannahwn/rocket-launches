@@ -30,7 +30,7 @@ def insert_readings(df: pd.DataFrame) -> None:
                 f"CREATE SCHEMA IF NOT EXISTS {schema}"  # noqa: S608
             )
             cur.execute(f"SET search_path TO {schema}")  # noqa: S608
-            cur.execute("DROP TABLE IF EXISTS rocket_launches")
+            
 
             # TODO: Replace 'rocket_launches' with a name that describes your data.
             cur.execute("""
@@ -95,7 +95,7 @@ def insert_provider_summary(df: pd.DataFrame) -> None:
     with closing(psycopg2.connect(db_url)) as conn:
         with conn.cursor() as cur:
             cur.execute(f"SET search_path TO {schema}")
-            cur.execute("DROP TABLE IF EXISTS launch_providers")
+
             cur.execute("""
                 CREATE TABLE IF NOT EXISTS launch_providers (
                     provider_name TEXT,
