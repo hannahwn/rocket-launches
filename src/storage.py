@@ -30,7 +30,6 @@ def insert_readings(df: pd.DataFrame) -> None:
                 f"CREATE SCHEMA IF NOT EXISTS {schema}"  # noqa: S608
             )
             cur.execute(f"SET search_path TO {schema}")  # noqa: S608
-            
 
             # TODO: Replace 'rocket_launches' with a name that describes your data.
             cur.execute("""
