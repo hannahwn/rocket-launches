@@ -12,6 +12,9 @@ from dotenv import load_dotenv
 from src.models import RocketLaunch
 from src.storage import insert_readings, upload_raw_json, insert_provider_summary
 
+
+load_dotenv()
+
 logging.basicConfig(
     level=os.getenv("LOG_LEVEL", "INFO"),
     format="%(asctime)s %(levelname)s %(message)s",
@@ -19,7 +22,7 @@ logging.basicConfig(
 logging.getLogger("azure").setLevel(logging.WARNING)
 log = logging.getLogger(__name__)
 
-load_dotenv()
+
 
 
 def fetch_data() -> list[dict]:
