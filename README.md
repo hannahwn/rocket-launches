@@ -1,12 +1,9 @@
-# Week 7 Project: [Space Launches]
+# Week 7 Project: Space Launches
 
 ## What it does
 
-A data pipeline that fetches upcoming rocket launch data from the Space Launches API , validates and transforms it, then stores the raw JSON response in Azure Blob Storage and inserts cleaned structured records into a Postgres database. It runs automatically every morning at 6am as a scheduled Azure Container App Job.
+A data pipeline that fetches upcoming rocket launch data from the Space Launches API, validates and transforms it, then stores the raw JSON response in Azure Blob Storage and inserts cleaned structured records into a Postgres database. It runs automatically every morning at 6am as a scheduled Azure Container App Job.
 
-## Architecture
-
-````text
 ## Architecture
 
 ```text
@@ -35,11 +32,9 @@ A data pipeline that fetches upcoming rocket launch data from the Space Launches
 │ Storage │ │ rocket_launches  │
 │  (raw)  │ │ launch_providers │
 └─────────┘ └──────────────────┘
-````
+```
 
 > Runs daily at 6am as Azure Container App Job
-
-````
 
 ## Run locally
 
@@ -58,13 +53,13 @@ uv sync
 uv run python -m src.pipeline
 
 # 4. Or build and run with Docker
-docker build -t my-pipeline .
-docker run --env-file .env my-pipeline
+docker build -t hannahwn-pipeline .
+docker run --env-file .env hannahwn-pipeline
 
 # 5. Check lint errors
 uv run ruff check src/
 uv run ruff format --check src/
-````
+```
 
 ## Run tests
 
@@ -76,15 +71,15 @@ uv run pytest tests/ -v
 
 ```bash
 # Build for linux/amd64 (required by Azure Container Apps) and push to ACR
-docker build --platform linux/amd64 -t hyfregistry.azurecr.io/my-pipeline:1.0 .
-docker push hyfregistry.azurecr.io/my-pipeline:1.0
+docker build --platform linux/amd64 -t hyfregistry.azurecr.io/hannahwn-pipeline:latest .
+docker push hyfregistry.azurecr.io/hannahwn-pipeline:latest
 
 # Create Container App Job (runs daily at 06:00 UTC)
 az containerapp job create \
   --name hannahwn-pipeline-job \
   --resource-group rg-hyf-data \
   --environment env-hyf-data \
-  --image hyfregistry.azurecr.io/my-pipeline:1.0 \
+  --image hyfregistry.azurecr.io/hannahwn-pipeline:latest \
   --registry-server hyfregistry.azurecr.io \
   --trigger-type Schedule \
   --cron-expression "0 6 * * *" \
@@ -140,8 +135,8 @@ Download and run the installer from [postgresql.org/download/windows](https://ww
 # Check job execution
 az containerapp job execution list --name hannahwn-pipeline-job --resource-group rg-hyf-data --output table
 
-# Check Postgres (replace dev_alice with your schema, <your_table> with your table name)
-psql "$POSTGRES_URL" -c "SELECT COUNT(*) FROM dev_hannahwn.<your_table>;"
+# Check Postgres
+psql "$POSTGRES_URL" -c "SELECT COUNT(*) FROM dev_hannahwn.rocket_launches;"
 
 # Check Blob Storage
 az storage blob list --account-name hyfstoragedev --container-name raw --prefix pipeline/ --output table
