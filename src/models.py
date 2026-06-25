@@ -1,37 +1,30 @@
-"""Pydantic models for data validation. Replace with your own."""
-
-from typing import Optional
+"""Pydantic models for data validation."""
 
 from pydantic import BaseModel
 
 
 class RocketLaunch(BaseModel):
-    """Example model. Replace with your own data structure."""
+    """Model for a single rocket launch record from the SpaceDevs API."""
 
     id: str
     name: str
-    launch_date: Optional[str] = None
-    launch_status: Optional[str] = None
-    rocket_name: Optional[str] = None
-    mission_name: Optional[str] = None
-    mission_type: Optional[str] = None
-    orbit: Optional[str] = None
-    provider_name: Optional[str] = None
-    provider_type: Optional[str] = None
-    pad_name: Optional[str] = None
-    location: Optional[str] = None
-    pad: Optional[dict] = None
-    launch_service_provider: Optional[dict] = None
-
-    # TODO: Replace these fields with the fields from your API response.
-    # Pydantic will reject any record that does not match this schema.
+    launch_date: str | None = None
+    launch_status: str | None = None
+    rocket_name: str | None = None
+    mission_name: str | None = None
+    mission_type: str | None = None
+    orbit: str | None = None
+    provider_name: str | None = None
+    provider_type: str | None = None
+    pad_name: str | None = None
+    location: str | None = None
 
     @classmethod
     def from_api_response(cls, data: dict) -> "RocketLaunch":
-        """Convert API response to model instance. Adjust field mappings as needed."""
+        """Convert API response to model instance."""
         return cls(
-            id=data["id"],
-            name=data["name"],
+            id=data.get("id"),
+            name=data.get("name"),
             launch_date=data.get("launch_date"),
             launch_status=data.get("launch_status"),
             rocket_name=data.get("rocket", {}).get("configuration", {}).get("name"),
@@ -42,6 +35,4 @@ class RocketLaunch(BaseModel):
             provider_type=data.get("launch_service_provider", {}).get("type"),
             pad_name=data.get("pad", {}).get("name"),
             location=data.get("pad", {}).get("location", {}).get("name"),
-            pad=data.get("pad"),
-            launch_service_provider=data.get("launch_service_provider"),
         )
