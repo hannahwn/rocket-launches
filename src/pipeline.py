@@ -23,12 +23,7 @@ load_dotenv()
 
 
 def fetch_data() -> list[dict]:
-    """Fetch data from your API. Replace this with your own logic."""
-    # TODO: Replace with your API call
-    # Example using requests:
-    #   response = requests.get("https://api.open-meteo.com/v1/forecast?...")
-    #   response.raise_for_status()
-    #   return response.json()["hourly"]
+    """Fetch upcoming rocket launches from the SpaceDevs API."""
     url = "https://ll.thespacedevs.com/2.2.0/launch/upcoming"
 
     try:
@@ -74,45 +69,27 @@ def validate(raw_records: list[dict]) -> list[RocketLaunch]:
         try:
             launch = RocketLaunch.from_api_response(record)
             valid.append(launch)
-        except ValidationError as e:
+        except (ValidationError, KeyError) as e:
             log.warning("Skipping invalid record: %s", e)
     log.info("Validated %d / %d records", len(valid), len(raw_records))
     return valid
 
 
 def transform(readings: list[RocketLaunch]) -> pd.DataFrame:
-    """Convert validated records to a DataFrame and apply transformations.
-
-    This is where pandas earns its place. Replace the examples below with
-    transformations that make sense for your data.
-    """
+    """Convert validated records to a DataFrame and apply transformations."""
     df = pd.DataFrame([r.model_dump() for r in readings])
 
-    # TODO: Replace these with your own transformations. Examples:
-    #
-    # Parse timestamp strings into proper datetime objects:
-    #   df["timestamp"] = pd.to_datetime(df["timestamp"])
-    #
-    # Derive a new column from existing data:
-    #   df["temp_fahrenheit"] = df["temperature"] * 9 / 5 + 32
-    #
-    # Drop rows where a required field is missing:
-    #   df = df.dropna(subset=["temperature"])
-    #
-    # Rename columns to match your Postgres table:
-    #   df = df.rename(columns={"timestamp": "recorded_at"})
-
-    # 1. Drop duplicates
+    # Drop duplicates
     df = df.drop_duplicates(subset=["id"])
 
     df["launch_date"] = pd.to_datetime(df["launch_date"], utc=True, errors="coerce")
 
-    # 2. Normalize text
+    # Normalize text
     df["name"] = df["name"].str.strip().str.title()
     df["provider_name"] = df["provider_name"].str.strip()
     df["location"] = df["location"].str.strip()
 
-    # 3. Fill missing values
+    # Fill missing values
     df["mission_name"] = df["mission_name"].fillna("Unknown")
     df["mission_type"] = df["mission_type"].fillna("Unknown")
     df["orbit"] = df["orbit"].fillna("Unknown")
@@ -120,26 +97,14 @@ def transform(readings: list[RocketLaunch]) -> pd.DataFrame:
     # Remove launches with unknown payload
     df = df[~df["name"].str.contains("Unknown Payload", case=False, na=False)]
 
-    # 4. Drop rows where critical fields are missing
+    # Drop rows where critical fields are missing
     df = df.dropna(subset=["rocket_name", "provider_name"])
 
     log.info("Transformed %d rows", len(df))
     return df
 
 
-def create_provider_summary(df: pd.DataFrame) -> pd.DataFrame:
-    """Analyse launches per provider."""
-    summary = (
-        df.groupby(["provider_name", "provider_type"])
-        .agg(
-            launch_count=("id", "count"),
-        )
-        .reset_index()
-    )
-    return summary
-
-
-def run():
+def run() -> None:
     """Run the full pipeline: fetch -> validate -> transform -> store."""
     log.info("Pipeline starting")
 
