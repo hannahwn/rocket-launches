@@ -31,7 +31,6 @@ def insert_readings(df: pd.DataFrame) -> None:
             )
             cur.execute(f"SET search_path TO {schema}")  # noqa: S608
 
-            # TODO: Replace 'rocket_launches' with a name that describes your data.
             cur.execute("""
                 CREATE TABLE IF NOT EXISTS rocket_launches (
                      id TEXT PRIMARY KEY,
@@ -46,7 +45,6 @@ def insert_readings(df: pd.DataFrame) -> None:
                     provider_type TEXT,
                     pad_name TEXT,
                     location TEXT
-                        
                 )
             """)
 
@@ -57,7 +55,9 @@ def insert_readings(df: pd.DataFrame) -> None:
                 cur.execute(
                     "INSERT INTO rocket_launches (id, name, launch_date, launch_status, rocket_name, mission_name, mission_type, orbit, provider_name, provider_type, pad_name, location)"
                     " VALUES (%s,%s,%s, %s, %s, %s, %s, %s, %s, %s,%s,%s)"
-                    " ON CONFLICT (id) DO NOTHING",
+                    " ON CONFLICT (id) DO UPDATE SET"
+                    " launch_status = EXCLUDED.launch_status,"
+                    " launch_date = EXCLUDED.launch_date",
                     (
                         row["id"],
                         row["name"],
@@ -84,7 +84,6 @@ def insert_provider_summary(df: pd.DataFrame) -> None:
     db_url = os.environ["POSTGRES_URL"]
     schema = os.environ.get("DB_SCHEMA", "public")
 
-    # Create summary with groupby
     summary = (
         df.groupby(["provider_name", "provider_type"])
         .agg(launch_count=("id", "count"))
@@ -93,21 +92,24 @@ def insert_provider_summary(df: pd.DataFrame) -> None:
 
     with closing(psycopg2.connect(db_url)) as conn:
         with conn.cursor() as cur:
-            cur.execute(f"SET search_path TO {schema}")
+            cur.execute(f"SET search_path TO {schema}")  # noqa: S608
 
             cur.execute("""
                 CREATE TABLE IF NOT EXISTS launch_providers (
                     provider_name TEXT,
                     provider_type TEXT,
-                    launch_count INTEGER
+                    launch_count INTEGER,
+                    PRIMARY KEY (provider_name, provider_type)
                 )
             """)
             for _, row in summary.iterrows():
                 cur.execute(
                     """
-                    INSERT INTO launch_providers 
+                    INSERT INTO launch_providers
                     (provider_name, provider_type, launch_count)
                     VALUES (%s, %s, %s)
+                    ON CONFLICT (provider_name, provider_type)
+                    DO UPDATE SET launch_count = EXCLUDED.launch_count
                     """,
                     (
                         row["provider_name"],
@@ -119,7 +121,7 @@ def insert_provider_summary(df: pd.DataFrame) -> None:
     log.info("Inserted %d rows into launch_providers", len(summary))
 
 
-def upload_raw_json(raw_data) -> None:
+def upload_raw_json(raw_data: list[dict]) -> None:
     """Upload raw API response to Blob Storage as a JSON backup."""
     conn_str = os.environ["AZURE_STORAGE_CONNECTION_STRING"]
     client = BlobServiceClient.from_connection_string(conn_str)
